@@ -24,12 +24,6 @@ Pastikan perangkat Anda terhubung ke internet untuk memuat pustaka Tailwind CSS,
 
 Portal ini membutuhkan kunci API dari Google AI Studio agar fitur suara dan asisten AI berfungsi.
 
-Dapatkan kunci API di Google AI Studio.
-
-Buka file HTML dan cari variabel const apiKey.
-
-Masukkan kunci Anda di sana: const apiKey = "KUNCI_ANDA_DI_SINI";.
-
 📚 Referensi Materi
 
 Materi dalam portal ini disusun berdasarkan RPS Metodologi Penelitian Kuantitatif:
