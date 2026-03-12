@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Metodologi Interaktif BKI - Digital Professor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
+        .chart-container { position: relative; width: 100%; height: 300px; max-height: 350px; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .voice-pulse {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { color: transparent; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent; }
+            40% { color: currentColor; text-shadow: .25em 0 0 transparent, .5em 0 0 transparent; }
+            60% { text-shadow: .25em 0 0 currentColor, .5em 0 0 transparent; }
+            80%, 100% { text-shadow: .25em 0 0 currentColor, .5em 0 0 currentColor; }
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col md:flex-row">
+
+    <!-- Chosen Palette: Indigo & Amber. Mewakili wibawa akademis dan kehangatan bimbingan. -->
+    <!-- Application Structure Plan: Portal ini dibagi menjadi 3 zona utama: Navigasi (Sidebar), Area Materi Dinamis (Main), dan Intelligent Layer (Voice & AI). Setiap bagian materi dilengkapi dengan tombol "Pandu Suara" yang memicu Gemini TTS untuk membacakan ringkasan materi seolah-olah dosen sedang mengajar. Alur navigasi memisahkan konsep kausalitas (Minggu 4-5) dan konsep korelasi (Minggu 6-7) untuk mencegah kerancuan kognitif mahasiswa. -->
+    <!-- Visualization & Content Choices: 
+         - Eksperimen: Line Chart untuk visualisasi Pre-Post Test.
+         - Korelasi: Scatter Plot untuk visualisasi hubungan variabel.
+         - Suara: Gemini 2.5 TTS (Voice: Kore) dengan instruksi nada formal-edukatif.
+         - Konsultasi: Gemini 2.5 Flash untuk analisis ide riset mahasiswa.
+         - CONFIRMATION: NO SVG/Mermaid used. Layout built with Tailwind Grid/Flex. Charts via Canvas. -->
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar" class="bg-indigo-950 text-indigo-100 w-full md:w-80 h-full absolute md:relative z-30 transition-transform duration-300 -translate-x-full md:translate-x-0 flex flex-col">
+        <div class="p-8 border-b border-indigo-900">
+            <h1 class="text-2xl font-bold text-amber-400">Metodologi BKI</h1>
+            <p class="text-[10px] text-indigo-400 font-bold tracking-[0.2em] mt-1 uppercase">Digital Professor Portal</p>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto py-6 px-4 space-y-8">
+            <div>
+                <p class="px-4 text-[10px] text-indigo-500 uppercase tracking-widest font-bold mb-4">Minggu 4-5: Kausalitas</p>
+                <ul class="space-y-1">
+                    <li><button onclick="nav('exp-intro')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-indigo-900 transition-all text-sm flex items-center gap-3" data-target="exp-intro"><span>&#128300;</span> Konsep Eksperimen</button></li>
+                    <li><button onclick="nav('exp-lab')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-indigo-900 transition-all text-sm flex items-center gap-3" data-target="exp-lab"><span>&#128200;</span> Lab Virtual Eksperimen</button></li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="px-4 text-[10px] text-indigo-500 uppercase tracking-widest font-bold mb-4">Minggu 6-7: Korelasi</p>
+                <ul class="space-y-1">
+                    <li><button onclick="nav('non-intro')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-indigo-900 transition-all text-sm flex items-center gap-3" data-target="non-intro"><span>&#128269;</span> Hubungan Variabel</button></li>
+                    <li><button onclick="nav('non-lab')" class="nav-btn w-full text-left px-4 py-3 rounded-xl hover:bg-indigo-900 transition-all text-sm flex items-center gap-3" data-target="non-lab"><span>&#128202;</span> Analisis Scatter Plot</button></li>
+                </ul>
+            </div>
+
+            <div class="pt-4 border-t border-indigo-900">
+                <button onclick="nav('ai-consultant')" class="nav-btn w-full text-left px-4 py-4 rounded-xl bg-indigo-900 text-amber-400 transition-all text-sm flex items-center gap-3 font-bold border border-amber-500/30" data-target="ai-consultant">
+                    <span>&#10024;</span> Konsultasi Judul Riset
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6 bg-indigo-950/50 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-indigo-950 font-bold">DI</div>
+            <div class="text-[10px] text-indigo-300">
+                <p class="font-bold text-indigo-100">Nur Asia T.,S.Sos.,M.Si.</p>
+                <p>Dosen Pengampu</p>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative bg-slate-50">
+        
+        <!-- Header / Voice Status -->
+        <header class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex justify-between items-center">
+            <div id="section-title" class="font-bold text-slate-800 uppercase tracking-widest text-xs">Selamat Datang</div>
+            <div id="voice-indicator" class="hidden flex items-center gap-3 px-4 py-1.5 bg-amber-50 border border-amber-200 rounded-full">
+                <span class="w-2 h-2 bg-amber-500 rounded-full voice-pulse"></span>
+                <span class="text-[10px] font-bold text-amber-700 uppercase">Dosen Sedang Menjelaskan...</span>
+                <button onclick="stopAudio()" class="text-amber-900 hover:text-red-600 ml-2 text-xs font-bold">BERHENTI</button>
+            </div>
+        </header>
+
+        <!-- CONTENT: Welcome -->
+        <section id="welcome" class="content-section p-8 md:p-16 max-w-4xl mx-auto fade-in">
+            <div class="text-center">
+                <div class="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-8 shadow-inner italic font-serif">BKI</div>
+                <h2 class="text-4xl font-extrabold text-slate-900 mb-6">Portal Pembelajaran Interaktif<br>Metodologi Kuantitatif</h2>
+                <p class="text-slate-600 text-lg mb-10 leading-relaxed">Pilih materi di sidebar untuk memulai. Setiap bagian dilengkapi dengan <strong>Pandu Suara AI</strong> untuk membantu Anda memahami konsep dengan lebih mendalam seolah sedang di ruang kelas.</p>
+                <button onclick="speakIntro()" class="inline-flex items-center gap-3 bg-amber-500 hover:bg-amber-600 text-indigo-950 font-bold px-8 py-4 rounded-2xl shadow-lg transition-transform active:scale-95">
+                    <span>&#128266;</span> Dengarkan Pengantar Portal
+                </button>
+            </div>
+        </section>
+
+        <!-- CONTENT: Exp Intro (4-5) -->
+        <section id="exp-intro" class="content-section p-8 md:p-16 max-w-5xl mx-auto fade-in hidden">
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <span class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-bold uppercase tracking-widest">Minggu 4-5</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900 mt-2">Hakikat Eksperimen</h2>
+                </div>
+                <button onclick="speakSection('exp-intro')" class="flex items-center gap-2 bg-white border border-slate-200 hover:border-amber-500 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all group">
+                    <span class="text-amber-500 group-hover:scale-110 transition-transform">&#128266;</span> Pandu Suara
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="w-2 h-6 bg-amber-500 rounded-full"></span>
+                        Notasi Utama
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold">R</div>
+                            <div class="text-sm text-slate-600"><strong>Randomization:</strong> Memastikan kesetaraan kelompok.</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-amber-500 text-indigo-950 flex items-center justify-center font-bold">X</div>
+                            <div class="text-sm text-slate-600"><strong>Treatment:</strong> Perlakuan (Variabel Bebas).</div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold">O</div>
+                            <div class="text-sm text-slate-600"><strong>Observation:</strong> Pengukuran hasil (Variabel Terikat).</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-indigo-900 text-indigo-100 p-8 rounded-3xl shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-indigo-800 rounded-full opacity-50"></div>
+                    <h3 class="font-bold text-amber-400 mb-4 italic">The Goal: Kausalitas</h3>
+                    <p class="text-sm leading-relaxed opacity-90">Eksperimen bukan sekadar mengamati, tapi <strong>memanipulasi</strong> satu variabel untuk melihat dampaknya pada variabel lain secara terkontrol.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTENT: Exp Lab -->
+        <section id="exp-lab" class="content-section p-8 md:p-16 max-w-5xl mx-auto fade-in hidden">
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Simulasi Lab Eksperimen</h2>
+            <p class="text-slate-500 text-sm mb-8 italic">Klik skenario di bawah untuk melihat perbedaan data pre-test dan post-test.</p>
+            
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm mb-8">
+                <div class="chart-container">
+                    <canvas id="expChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button onclick="updateExpLab('effective')" class="p-4 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 shadow-lg shadow-slate-200 transition-all">Skenario: X Berpengaruh Signifikan</button>
+                <button onclick="updateExpLab('fail')" class="p-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-all">Skenario: X Tidak Berpengaruh</button>
+            </div>
+        </section>
+
+        <!-- CONTENT: Non-Intro (6-7) -->
+        <section id="non-intro" class="content-section p-8 md:p-16 max-w-5xl mx-auto fade-in hidden">
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-widest">Minggu 6-7</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900 mt-2">Korelasional & Ex-Post Facto</h2>
+                </div>
+                <button onclick="speakSection('non-intro')" class="flex items-center gap-2 bg-white border border-slate-200 hover:border-amber-500 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition-all group">
+                    <span class="text-amber-500 group-hover:scale-110 transition-transform">&#128266;</span> Pandu Suara
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="p-8 rounded-3xl border border-blue-200 bg-blue-50/50">
+                    <h3 class="font-bold text-blue-900 mb-4">Metode Survey & Korelasi</h3>
+                    <p class="text-sm text-blue-800 leading-relaxed">Meneliti hubungan antar variabel secara alami. Jika satu naik, apakah yang lain ikut naik? Ingat: <strong>Correlation is not Causation.</strong></p>
+                </div>
+                <div class="p-8 rounded-3xl border border-amber-200 bg-amber-50/50">
+                    <h3 class="font-bold text-amber-900 mb-4">Ex-Post Facto</h3>
+                    <p class="text-sm text-amber-800 leading-relaxed">"After the fact". Meneliti peristiwa yang sudah terjadi dan merunut ke belakang untuk mencari penyebabnya.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTENT: Non-Lab -->
+        <section id="non-lab" class="content-section p-8 md:p-16 max-w-5xl mx-auto fade-in hidden">
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Analisis Scatter Plot</h2>
+            <p class="text-slate-500 text-sm mb-8">Visualisasi hubungan antara dua variabel (misal: Religiusitas vs Kebahagiaan).</p>
+            
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm mb-8">
+                <div class="chart-container">
+                    <canvas id="corrChart"></canvas>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4">
+                <button onclick="updateCorrLab('pos')" class="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700">Korelasi Positif</button>
+                <button onclick="updateCorrLab('neg')" class="flex-1 bg-rose-600 text-white py-3 rounded-xl font-bold hover:bg-rose-700">Korelasi Negatif</button>
+                <button onclick="updateCorrLab('zero')" class="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold hover:bg-slate-300">Tanpa Korelasi</button>
+            </div>
+        </section>
+
+        <!-- CONTENT: AI Consultant -->
+        <section id="ai-consultant" class="content-section p-8 md:p-16 max-w-5xl mx-auto fade-in hidden">
+            <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Laboratorium Konsultasi AI ✨</h2>
+            <p class="text-slate-600 mb-8">Kirimkan ide atau fenomena konseling yang Anda temukan, dan Asisten AI akan merancang draf metodologinya untuk Anda.</p>
+
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-indigo-100 border border-indigo-50">
+                <textarea id="aiInput" class="w-full p-6 bg-slate-50 border border-slate-200 rounded-2xl mb-6 focus:ring-2 focus:ring-amber-500 focus:outline-none text-sm min-h-[120px]" placeholder="Contoh: Saya ingin meneliti apakah zikir pagi berpengaruh pada fokus belajar mahasiswa BKI..."></textarea>
+                <button id="aiBtn" onclick="consultAI()" class="w-full bg-indigo-950 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-900 transition-all flex items-center justify-center gap-2">
+                    <span>&#10024;</span> Analisis Metodologi
+                </button>
+                
+                <div id="aiResponse" class="mt-10 p-8 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 text-sm text-slate-700 leading-relaxed hidden">
+                    Sedang memproses ide Anda...
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- UI Interactions & API Logic -->
+    <script>
+        const apiKey = "";
+        let currentAudio = null;
+        let expChart = null;
+        let corrChart = null;
+
+        // --- Core Navigation ---
+        function nav(sectionId) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById(sectionId);
+            if(target) target.classList.remove('hidden');
+
+            // Update UI Active State
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-900', 'text-amber-400', 'font-bold');
+            });
+            const activeBtn = document.querySelector(`[data-target="${sectionId}"]`);
+            if(activeBtn) activeBtn.classList.add('bg-indigo-900', 'text-amber-400', 'font-bold');
+
+            // Header title update
+            const titles = {
+                'welcome': 'Selamat Datang',
+                'exp-intro': 'Hakikat Eksperimen',
+                'exp-lab': 'Virtual Lab: Eksperimen',
+                'non-intro': 'Korelasi & Ex-Post Facto',
+                'non-lab': 'Virtual Lab: Korelasi',
+                'ai-consultant': 'Asisten Riset AI'
+            };
+            document.getElementById('section-title').textContent = titles[sectionId] || 'Portal Metodologi';
+
+            // Auto-trigger charts
+            if(sectionId === 'exp-lab') initExpChart();
+            if(sectionId === 'non-lab') initCorrChart();
+
+            // Mobile Auto-Close Sidebar
+            if(window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+            }
+        }
+
+        // --- TTS Logic (Gemini API) ---
+        async function speak(text, tone = "dosen yang ramah, berwibawa, dan jelas") {
+            stopAudio();
+            const indicator = document.getElementById('voice-indicator');
+            indicator.classList.remove('hidden');
+
+            const prompt = `Say in Indonesian as a ${tone}: ${text}`;
+            
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                const pcmData = data.candidates[0].content.parts[0].inlineData.data;
+                const mimeType = data.candidates[0].content.parts[0].inlineData.mimeType;
+                const sampleRate = parseInt(mimeType.split('rate=')[1]) || 24000;
+
+                const wavBlob = pcmToWav(pcmData, sampleRate);
+                const url = URL.createObjectURL(wavBlob);
+                currentAudio = new Audio(url);
+                currentAudio.play();
+                currentAudio.onended = () => indicator.classList.add('hidden');
+            } catch (err) {
+                console.error("TTS Error:", err);
+                indicator.classList.add('hidden');
+            }
+        }
+
+        function stopAudio() {
+            if(currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+            document.getElementById('voice-indicator').classList.add('hidden');
+        }
+
+        // --- Voice Scripts ---
+        function speakIntro() {
+            speak("Selamat datang mahasiswa bimbingan konseling islam. Saya adalah pandu suara portal metodologi anda. Di sini, anda akan belajar perbedaan mendasar antara eksperimen dan non-eksperimen. Silakan jelajahi menu di sebelah kiri untuk memulai petualangan riset anda.");
+        }
+
+        function speakSection(section) {
+            const scripts = {
+                'exp-intro': "Pada minggu ke-4 dan ke-5 ini, fokus kita adalah kausalitas. Ingat tiga simbol utama: R untuk acak, X untuk perlakuan, dan O untuk pengukuran. Eksperimen adalah tentang kontrol penuh.",
+                'non-intro': "Berbeda dengan eksperimen, minggu ke-6 dan ke-7 kita membahas hubungan alami. Di sini kita tidak merubah subjek, kita hanya mengamati korelasi. Ingat, korelasi bukan berarti sebab-akibat."
+            };
+            speak(scripts[section]);
+        }
+
+        // --- AI Consultant Logic ---
+        async function consultAI() {
+            const input = document.getElementById('aiInput').value;
+            if(!input) return;
+
+            const btn = document.getElementById('aiBtn');
+            const resp = document.getElementById('aiResponse');
+            
+            btn.disabled = true;
+            btn.innerHTML = `<span class="loading-dots">Dosen AI Sedang Menganalisis</span>`;
+            resp.classList.remove('hidden');
+            resp.innerHTML = "<em>Menganalisis ide anda dari perspektif metodologi kuantitatif BKI...</em>";
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Analisis ide riset BKI berikut: "${input}". 
+                        Tentukan: 
+                        1. Desain yang tepat (Eksperimen atau Korelasional).
+                        2. Identifikasi Variabel Bebas dan Terikat.
+                        3. Rekomendasi judul skripsi yang elegan. 
+                        Jelaskan secara singkat dan profesional.` }] }],
+                        systemInstruction: { parts: [{ text: "Anda adalah dosen pakar metodologi penelitian kuantitatif di prodi BKI Universitas Islam Negeri SMH Banten." }] }
+                    })
+                });
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, asisten AI sedang sibuk.";
+                resp.innerHTML = text.replace(/\n/g, '<br>');
+            } catch (err) {
+                resp.innerHTML = "Gagal terhubung dengan asisten AI.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "<span>&#10024;</span> Analisis Metodologi";
+            }
+        }
+
+        // --- Chart Sims ---
+        function initExpChart() {
+            if(expChart) return;
+            const ctx = document.getElementById('expChart').getContext('2d');
+            expChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Pre-test', 'Post-test'],
+                    datasets: [
+                        { label: 'Kel. Eksperimen', data: [50, 85], borderColor: '#6366f1', backgroundColor: '#818cf8', tension: 0.1, borderWidth: 3 },
+                        { label: 'Kel. Kontrol', data: [52, 55], borderColor: '#94a3b8', borderDash: [5, 5], tension: 0.1 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+            });
+        }
+
+        function updateExpLab(type) {
+            if(!expChart) return;
+            if(type === 'effective') {
+                expChart.data.datasets[0].data = [50, 88];
+                expChart.data.datasets[1].data = [51, 54];
+            } else {
+                expChart.data.datasets[0].data = [50, 52];
+                expChart.data.datasets[1].data = [51, 53];
+            }
+            expChart.update();
+        }
+
+        function initCorrChart() {
+            if(corrChart) return;
+            const ctx = document.getElementById('corrChart').getContext('2d');
+            corrChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: [{ label: 'Subjek Penelitian', data: generateData('pos'), backgroundColor: '#6366f1' }] },
+                options: { maintainAspectRatio: false }
+            });
+        }
+
+        function generateData(type) {
+            let pts = [];
+            for(let i=0; i<40; i++) {
+                let x = Math.random() * 100;
+                let y;
+                if(type === 'pos') y = x + (Math.random() * 20 - 10);
+                else if(type === 'neg') y = 100 - x + (Math.random() * 20 - 10);
+                else y = Math.random() * 100;
+                pts.push({x, y});
+            }
+            return pts;
+        }
+
+        function updateCorrLab(type) {
+            if(!corrChart) return;
+            corrChart.data.datasets[0].data = generateData(type);
+            corrChart.data.datasets[0].backgroundColor = type === 'neg' ? '#f43f5e' : (type === 'pos' ? '#6366f1' : '#94a3b8');
+            corrChart.update();
+        }
+
+        // --- PCM to WAV Helper ---
+        function pcmToWav(base64Pcm, sampleRate) {
+            const binaryString = atob(base64Pcm);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
+            const buffer = new ArrayBuffer(44 + bytes.length);
+            const view = new DataView(buffer);
+            const writeString = (offset, string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
+            writeString(0, 'RIFF');
+            view.setUint32(4, 32 + bytes.length, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, bytes.length, true);
+            const pcmView = new Uint8Array(buffer, 44);
+            pcmView.set(bytes);
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        // Initial landing
+        nav('welcome');
+    </script>
+</body>
+</html>
